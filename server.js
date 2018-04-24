@@ -136,7 +136,8 @@ app.get('/', function(req, res) {
 
 				var highlightedSnippet = "";
 				for(var word of snippet.split(' ')) {
-					if(queryString.toLowerCase().split(' ').indexOf(word.toLowerCase()) > -1) {
+					cleanedWord = word.replace(/\W/g, '').toLowerCase();
+					if(queryString.toLowerCase().split(' ').indexOf(cleanedWord) > -1) {
 						highlightedSnippet += '<b>' + word + '</b> ';
 					} else {
 						highlightedSnippet += word + ' ';
