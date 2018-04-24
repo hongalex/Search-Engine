@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<% include ../partials/head %>
+</head>
+<body class="container">
+
+<main>
+	<h1 style="text-align:center"> Solr Index Search </h1>
+	<div class="search">
+		<h3>Search</h3>
+		<form action="/" method="get">
+			<div class="input-group mx-auto">
+				<input class="form-control" name="q" placeholder="Enter a search query" value="<%= query %>">
+				<div class="input-group-append">
+					<button class="btn btn-primary" type="submit">Search</button>
+				</div>
+			</div>
+			<div class="btn-group btn-group-toggle" data-toggle="buttons">
+			  <label class="btn btn-primary <% if(searchType==='lucene'){ %> active <% } %>" >
+			    <input type="radio" name="searchType" value="lucene" autocomplete="off"
+			    	<% if(searchType==='lucene'){ %> checked <% } %>> 
+			    	Lucene
+			  </label>
+			  <label class="btn btn-primary <% if(searchType==='pageRank'){ %> active <% } %>">
+			    <input type="radio" name="searchType" value="pageRank" autocomplete="off"
+			    <% if(searchType==='pageRank'){ %> checked <% } %>> 
+			    	Page Rank
+			  </label>
+			</div>
+		</form>
+	</div>
+	<div class="results">
+		<%if (results) { %>
+			<h3> Results </h3>
+			<p> Showing <%= Math.min(10,numResults) %> of <%= numResults %> results found</p>
+			<% if(query.toLowerCase() !== correction.toLowerCase()){ %> 
+				<h4> Did you mean: <a href="/?q=<%= correction %>"><%= correction %> </a></h4> 
+			<% } %>
+			<% docs.forEach(function(doc) { %>
+				<div class="result">
+					<h3> <a href=<%= doc.og_url %>> <%= doc.title %> </a> </h3>
+					<h5 class="url"> <a href=<%= doc.og_url %>> <%= doc.og_url %> </a> </h5>
+					<h5 class="url"> <%= doc.id %> </h5>
+					<h5> <%= doc.snippet %> </h5>
+				</div>
+			<% }); %>
+		<% } %>
+	</div>
+
+</main>
+
+<footer>
+	<% include ../partials/footer %>
+</footer>
+
+</body>
+</html>
