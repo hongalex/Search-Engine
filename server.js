@@ -20,8 +20,8 @@ var client = new SolrNode({
 var htmlDir = '../../Newsday/HTML Files/';
 
 var spellCorrector = new SpellCorrector();
-// spellCorrector.loadDictionary('big.txt');
-spellCorrector.loadDictionary();
+spellCorrector.loadDictionary('big.txt');
+// spellCorrector.loadDictionary();
 
 // Load CSV file into dictionary
 var urlToHtmlCsv = fs.readFileSync('UrlToHtml_Newday.csv').toString();
@@ -116,9 +116,9 @@ app.get('/', function(req, res) {
 		var queryString = req.query.q;
 		var searchType = req.query.searchType ? req.query.searchType : 'lucene';
 
-		var query = client.query().q(queryString);
+		var query = client.query().q(queryString).qop('AND');
 		if(searchType === 'pageRank') {
-			query = client.query().q(queryString).sort({'pageRankFile':'asc'});
+			query = client.query().q(queryString).qop('AND').sort({'pageRankFile':'asc'});
 		}
 
 		client.search(query, function(err, result) {
@@ -134,7 +134,16 @@ app.get('/', function(req, res) {
 					snippet += '...';
 				}
 
-				docObj.snippet = snippet;
+				var highlightedSnippet = "";
+				for(var word of snippet.split(' ')) {
+					if(queryString.toLowerCase().split(' ').indexOf(word.toLowerCase()) > -1) {
+						highlightedSnippet += '<b>' + word + '</b> ';
+					} else {
+						highlightedSnippet += word + ' ';
+					}
+				}
+
+				docObj.snippet = highlightedSnippet;
 				if(!docObj.og_url) {
 					var docId = docObj.id.split('/');
 					var url = docId[docId.length-1];
@@ -166,6 +175,15 @@ app.get('/', function(req, res) {
 			searchType: 'lucene'
 		});
 	}
+});
+
+app.get('/search', function(req, res){
+	var data=[];
+	for(i=0;i<10;i++)
+	{
+		data.push("testing " + i);
+	}
+	res.end(JSON.stringify(data));
 });
 
 app.listen(8080);

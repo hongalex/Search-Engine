@@ -6,12 +6,47 @@
 <body class="container">
 
 <main>
+  <script>
+  $(function() {
+    $("#autocomplete").autocomplete({
+      source: function( request, response ) {
+        $.ajax( {
+          url: "http://localhost:8983/solr/hw4/suggest",
+          dataType: "jsonp",
+          data: {
+            q: request.term.split(' ').slice(-1)[0]
+          },
+          success: function( data ) {
+          	var suggestions = data.suggest.suggest[request.term.split(' ').slice(-1)[0]].suggestions;
+          	var responses = [];
+          	for(var word of suggestions) {
+          		responses.push(word.term);
+          	}
+            response(responses);
+          },
+          jsonp: 'json.wrf'
+        } );
+      },
+      minLength: 1,
+      select: function(event, ui) {
+      	event.preventDefault();
+		var term = ui.item.value;
+		var newArray = $("#autocomplete").val().split(' ');
+		newArray[newArray.length-1] = term;
+		$("#autocomplete").val(newArray.join(' '));
+      }
+    });
+  });
+  </script>
+
 	<h1 style="text-align:center"> Solr Index Search </h1>
 	<div class="search">
+
 		<h3>Search</h3>
+
 		<form action="/" method="get">
-			<div class="input-group mx-auto">
-				<input class="form-control" name="q" placeholder="Enter a search query" value="<%= query %>">
+			<div class="input-group mx-auto ui-widget">
+				<input id="autocomplete" class="form-control" name="q" placeholder="Enter a search query" value="<%= query %>">
 				<div class="input-group-append">
 					<button class="btn btn-primary" type="submit">Search</button>
 				</div>
@@ -42,7 +77,7 @@
 					<h3> <a href=<%= doc.og_url %>> <%= doc.title %> </a> </h3>
 					<h5 class="url"> <a href=<%= doc.og_url %>> <%= doc.og_url %> </a> </h5>
 					<h5 class="url"> <%= doc.id %> </h5>
-					<h5> <%= doc.snippet %> </h5>
+					<h5> <%- doc.snippet %> </h5>
 				</div>
 			<% }); %>
 		<% } %>
