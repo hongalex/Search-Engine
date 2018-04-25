@@ -43,7 +43,7 @@ var findSnippet = function(docID, queryString) {
 	for(var term of queryTerms) {
 		allTermString += '(' + term + ').*';
 		anyOrderTermString += '(?=.*\b' + term + '\b)';
-		anyTermString += term + '|';
+		anyTermString += '\\b' + term + '\\b|';
 	}
 	anyTermString = anyTermString.slice(0,-1);
 
@@ -114,6 +114,7 @@ app.get('/', function(req, res) {
 	if(req.query.q) {
 		
 		var queryString = req.query.q;
+		var queryWords = queryString.toLowerCase().split(' ');
 		var searchType = req.query.searchType ? req.query.searchType : 'lucene';
 
 		var query = client.query().q(queryString).qop('AND');
@@ -130,14 +131,27 @@ app.get('/', function(req, res) {
 			result.response.docs.forEach(function(docObj) {
 				var snippet = findSnippet(docObj.id, queryString);
 				if(snippet.length > 160) {
-					snippet = snippet.slice(0,160);
-					snippet += '...';
+					var firstHalf = snippet.slice(0,160);
+					
+					var containsQueryWords = false;
+					for(var word of queryWords) {
+						if(firstHalf.toLowerCase().indexOf(word) >= 0) {
+							containsQueryWords = true;
+							break;
+						}
+					}
+
+					if(!containsQueryWords) {
+						snippet = '...' + snippet.slice(-160);
+					} else {
+						snippet = firstHalf + '...';
+					}
 				}
 
 				var highlightedSnippet = "";
 				for(var word of snippet.split(' ')) {
 					cleanedWord = word.replace(/\W/g, '').toLowerCase();
-					if(queryString.toLowerCase().split(' ').indexOf(cleanedWord) > -1) {
+					if(queryWords.indexOf(cleanedWord) >= 0) {
 						highlightedSnippet += '<b>' + word + '</b> ';
 					} else {
 						highlightedSnippet += word + ' ';

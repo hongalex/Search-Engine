@@ -20,7 +20,9 @@
           	var suggestions = data.suggest.suggest[request.term.split(' ').slice(-1)[0]].suggestions;
           	var responses = [];
           	for(var word of suggestions) {
-          		responses.push(word.term);
+          		var fullQuery = request.term.split(' ');
+          		fullQuery[fullQuery.length-1] = word.term;
+          		responses.push(fullQuery.join(' '));
           	}
             response(responses);
           },
